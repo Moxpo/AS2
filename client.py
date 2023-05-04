@@ -7,7 +7,9 @@ cli_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # The server's address is a tuple, comprising the server's IP address or hostname, and port number
 srv_addr = (sys.argv[1], int(sys.argv[2])) # sys.argv[x] is the x'th argument on the command line
-
+prompt = (sys.argv[3])
+file = (sys.argv[4])
+client_filepath = "client_data/"
 # Convert to string, to be used shortly
 srv_addr_str = str(srv_addr)
 
@@ -44,36 +46,37 @@ except Exception as e:
  these error conditions should be handled separately.
 """
 try:
+	print (prompt)
+
+	if prompt == "GET":
+		file = client_filepath + file
+		print(file)
+		download_file(file, cli_sock)
+
+
+
+
+
 	# Loop until either the server closes the connection or the user requests termination
 	while True:
-		userinput = input("What do you want? 1,2,3, 4?")
-		castInput = int(userinput)
-		if castInput == 1:
-			download_file()
+		# First, read data from keyboard and send to server
+		bytes_sent = keyboard_to_socket(cli_sock)
+		if bytes_sent == 0:
+			print("User-requested exit.")
 			break
-		elif castInput == 2:
-			upload_file()
-			break
-		elif castInput == 3:
-			list_function()
-			break
-		elif castInput == 4:
-			while True:
-				# First, read data from keyboard and send to server
-				bytes_sent = keyboard_to_socket(cli_sock)
-				if bytes_sent == 0:
-					print("User-requested exit.")
-					break
 
-				# Then, read data from server and print on screen
-				bytes_read = socket_to_screen(cli_sock, srv_addr_str)
-				if bytes_read == 0:
-					print("Server closed connection.")
-					break
-		else:
-			print("yolo")
+		# Then, read data from server and print on screen
+		bytes_read = socket_to_screen(cli_sock, srv_addr_str)
+		if bytes_read == 0:
+			print("Server closed connection.")
 			break
+
 finally:
+	"""
+	 If an error occurs or the server closes the connection, call close() on the
+	 connected socket to release the resources allocated to it by the OS.
+	"""
 	cli_sock.close()
 
+# Exit with a zero value, to indicate success
 exit(0)
